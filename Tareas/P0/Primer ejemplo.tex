@@ -45,11 +45,11 @@ tareas. Vamos a incluir una ecuaci\'{o}n \eqref{equ}:
 
 \newpage
 
-Vamos a aprender adem\'{a}s a citar fuentes \citep{ejemplo}. Incluimos un
-cuadro \ref{datos} con algunos datos y en la figura \ref{limon} hay un
-lim\'{o}n.
+\section{Crear tablas y cuadros}
 
-\begin{table} % cuadro
+En esta secci\'{o}n se aprende a crear tablas y cuadros.
+
+\begin{table}[h!] % cuadro
     \caption{Ocupo explicar de qu\'{e} se trata mi cuadro.} % explicacion
     \label{datos} % etiqueta
     \centering % centrar
@@ -59,7 +59,7 @@ lim\'{o}n.
     \end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[h!]
     \caption{Aqu\'{i} otro ejemplo de tabla.}
     \label{otros_datos}
     \centering
@@ -68,6 +68,66 @@ lim\'{o}n.
       Dato 1 & Dato 2 & $\pi$ & Dato 3
     \end{tabular}
 \end{table}
+
+\subsection{Medici\'{o}n en R}
+
+Subsecci\'{o}n donde se muestra la tabla de las mediciones de la matriz en R.
+
+\begin{table}[h!]
+    \centering
+    \caption{Medidas de tiempo y tamaño en R}
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+       No. Matriz  & Elementos & Tiempo (s) & Tamaño (B) \\
+       \hline\hline
+        8 & 256 & $<$ 0.01 & 524504 \\
+        \hline
+        9 & 512 & 0.01 & 2097368 \\
+        \hline
+        10 & 1024 & 0.07 & 8388824 \\
+        \hline
+        11 & 2048 & 0.22 & 33554648 \\
+        \hline
+        12 & 4096 & 1 & 134217944 \\
+        \hline
+        13 & 8192 & 3.56 & 536871128 \\
+        \hline
+    \end{tabular}
+    \label{medir_R}
+\end{table}
+
+\subsection{Medici\'{o}n en Python}
+
+Subsecci\'{o}n donde se muestra la tabla de las mediciones del vector en Python.
+
+\begin{table}[h!]
+    \centering
+    \caption{Medidas de tiempo y tamaño en Python}
+    \begin{tabular}{|c|c|c|}
+    \hline
+      Elementos & Tiempo (s) & Tamaño (B) \\
+       \hline\hline
+        32768 & 0.00799870491027832 & 965800 \\
+        \hline
+        65536 & 0.012125253677368164 & 1933592 \\
+        \hline
+        131072 & 0.02902364730834961 & 3880732 \\
+        \hline
+        262144 & 0.06957197189331055 & 7786584 \\
+        \hline
+        524288 & 0.11485123634338379 & 15624468 \\
+        \hline
+        1048576 & 0.2762618064880371 & 30299088 \\
+        \hline
+        2097152 & 0.45848608016967773 & 60796912 \\
+        \hline
+    \end{tabular}
+    \label{medir_Py}
+\end{table}
+
+Vamos a aprender adem\'{a}s a citar fuentes \citep{ejemplo}. Incluimos un
+cuadro \ref{datos} con algunos datos y en la figura \ref{limon} hay un
+lim\'{o}n.
 
 \section{Gr\'{a}ficas}
 En esta secci\'{o}n se aprende c\'{o}mo crear gr\'{a}ficas en LaTeX
