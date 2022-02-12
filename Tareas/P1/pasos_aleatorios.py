@@ -2,6 +2,7 @@ from random import random, randint, getrandbits
 from math import fabs, sqrt
 import matplotlib.pyplot as plt
 import numpy as np
+from time import time
 
 runs = 30 #replicas
 caminatas = [100, 1000, 10000] #pasos
@@ -11,7 +12,8 @@ for i in range(3): #itera la cantidad de pasos
     dur = caminatas[i]
     for dim in range(1, 6): #de una a cinco dimensiones
         mayores = []
-        for rep in range(runs): #corre el experimento 30 veces en cada dimension
+        for rep in range(runs):#corre el experimento 30 veces en cada dimension
+            before = time()*1000
             pos = [0] * dim
             mayor = 0
             for paso in range(dur):
@@ -28,7 +30,10 @@ for i in range(3): #itera la cantidad de pasos
                         pos[eje] -= 1
                 mayor = max(mayor, sqrt(sum([p**2 for p in pos])))
             mayores.append(mayor)
+            after = time()*1000
         results.append(mayores)
+tiempo = after - before
+print(tiempo)
 
 #separar los resultados en tres grupos de caminatas
 walks_1 = results[0:5]
