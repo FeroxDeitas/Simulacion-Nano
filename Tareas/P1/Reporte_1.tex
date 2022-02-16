@@ -68,12 +68,13 @@ walks_2 = results[5:10] #caminatas de 1000 pasos
 walks_3 = results[10:15] #caminatas de 10000 pasos
 \end{lstlisting}
 
-En cada ciclo se calcula la distancia m\'axima euclideana tomada desde el punto de origen utilizando la ecuaci\'on \eqref{eq1} y se agrega a la lista de resultados para ser graficados posteriormente.
+En cada ciclo se calcula la distancia m\'axima euclideana tomada desde el punto de origen utilizando la ecuaci\'on \eqref{eq1} y se agrega a la lista de resultados para ser graficados posteriormente,
 
 \begin{equation}
-    d_{max} =max\{0, d_{e}\}, d_{e} = \sqrt{\sum_{n=1}^m x_{n}^{2}}\\ \label{eq1}
+    d_{max} = \max\{0, d_{e}\},\ d_{e} = \sqrt{\sum_{n=1}^m x_{n}^{2}}\\ \label{eq1}
 \end{equation}
-Donde $m$ es la cantidad de ejes.\\
+
+donde $m$ es la cantidad de ejes.\\
 
 Adicionalmente, se utiliza el comando \texttt{time()} para medir el tiempo que toma realizar los 30 ciclos en cada dimensi\'on, a lo cual se realiza una normalizaci\'on para conocer el promedio que tarda en ejecutarse un solo ciclo.
 
