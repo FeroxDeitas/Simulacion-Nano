@@ -1,16 +1,14 @@
 import numpy as np
 from random import random
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 
 dim = [10, 15, 20] #matrix sizes
 p = [0.2, 0.4, 0.6, 0.8] #initial life density
 runs = 30 #replicas of the experiment
-dur = 50 #iterations
-#seq = 0
-datos = pd.DataFrame()
+dur = 200 #iterations
+vivieron = []
+
 def mapeo(pos):
     fila = pos // lado
     columna = pos % lado
@@ -26,29 +24,45 @@ def paso(pos):
 for lado in dim: #defines matrix size
     num = lado**2
     for densidad in p: #defines initial life density
+        contador_viv=0
         for rep in range(runs): #starts 30 replicas
-            viven = 0
             valores = [1 * (random() < densidad) for i in range(num)] #generates initial seed
             actual = np.reshape(valores, (lado, lado)) #reshapes initial seed 'valores' into array 'actual'
             assert all([mapeo(x) == valores[x]  for x in range(num)])
-            for iteracion in range(dur): #starts iteration of cell automata, 50 steps
+            for iteracion in range(dur): #starts iteration of cell automata, 50 iterations
                 valores = [paso(y) for y in range(num)] #defines new 'valores' list according to neighbor = 3 rule from 'paso'
+                vivos = sum(valores)
+                if vivos == 0:
+                    break;
+                if iteracion == (dur-1):
+                    contador_viv += 1
                 actual = np.reshape(valores, (lado, lado)) #reshapes the new 'valores' list into new 'actual' array
-            print(lado, densidad, rep, iteracion, f'actual: {actual}')
-            resultado = { 'Tamaño': lado,
-                      'P' : densidad,
-                      'Viven': np.sum(actual) > 3}
-            datos = datos.append(resultado, ignore_index=True)
-print(datos)
-#fig = plt.figure()
-#plt.imshow(actual, interpolation='nearest', cmap=cm.Greys)
-#fig.suptitle('Estado inicial')
-#plt.savefig('p2_t0_p.png')
-#plt.close()
+            #print(lado, densidad, rep, iteracion, f'actual: {actual}')
+        print(contador_viv)
+        contador_viv = ((contador_viv*100)/(rep+1))
+        print('contador vivos:', contador_viv)
+        vivieron.append(contador_viv)
+print('lista de porcentajes de vivos:', vivieron)
 
-    #fig = plt.figure()
-    #plt.imshow(actual, interpolation='nearest', cmap=cm.Greys)
-    #fig.suptitle('Paso {:d}'.format(iteracion + 1))
-    #plt.savefig('p2_t{:d}_p.png'.format(seq))
-    #seq += 1
-    #plt.close()
+P02 = vivieron[0:3]
+P04 = vivieron[3:6]
+P06 = vivieron[6:9]
+P08 = vivieron[9:12]
+
+sep = np.arange(3)
+
+plt.plot(sep, P02, label = '0.2')
+plt.scatter(sep, P02)
+plt.plot(sep, P04, label = '0.4')
+plt.scatter(sep, P04)
+plt.plot(sep, P06 ,label='0.6')
+plt.scatter(sep, P06)
+plt.plot(sep, P08, label='0.8')
+plt.scatter(sep, P08)
+plt.xticks(sep , ('10', '15', '20'))
+plt.ylabel('Supervivencia (%)')
+plt.xlabel('Tamaño de matriz')
+plt.title('Autómata Celular')
+plt.legend(title='P inicial')
+plt.savefig('Porcentaje.png')
+plt.show()
