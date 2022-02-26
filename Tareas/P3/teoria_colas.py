@@ -82,8 +82,8 @@ if __name__ == "__main__":
     stat2, p2 = f_oneway(resultados_2['Original'],
                          resultados_2['Invertido'],
                          resultados_2['Aleatorio'])
-    print('Variando orden de numeros\n', 'stat=%.3f, p=%.3f' % (stat1, p1))
-    if p1 > 0.05:
+    print('Variando orden de numeros\n', 'stat=%.3f, p=%.3f' % (stat2, p2))
+    if p2 > 0.05:
         print('Estadísticamente no significativa\n')
     else:
         print('Estadísticamente significativa\n')
