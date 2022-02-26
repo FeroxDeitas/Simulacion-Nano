@@ -5,12 +5,10 @@ from time import time
 from scipy.stats import f_oneway
 import pandas as pd
 import matplotlib.pyplot as plt
-import warnings
-
-warnings.simplefilter(action='ignore', category=FutureWarning)
+import seaborn as sns
 
 d = 1000
-h = 3000
+h = 5000
 replicas = 20
 original = [x for x in range(d, h + 1)]
 invertido = original[::-1]
@@ -47,45 +45,44 @@ def primo_3(n):
     return True
 
 if __name__ == "__main__":
-    resultados1 = {'Primo 1': [], 'Primo 2': [], 'Primo 3': []}
+    resultados = {'Primo 1': [], 'Primo 2': [], 'Primo 3': [], \
+                   'Original': [], 'Invertido': [], 'Aleatorio': []}
     with multiprocessing.Pool(processes = cores-1) as pool:
         for r in range(replicas):
-            t = time()
+            t = (time()*1000)
             pool.map(primo_1, original)
-            resultados1['Primo 1'].append(time()-t)
-            t = time()
+            resultados['Primo 1'].append((time()*1000)-t)
+            t = (time()*1000)
             pool.map(primo_2, original)
-            resultados1['Primo 2'].append(time()-t)
+            resultados['Primo 2'].append((time()*1000)-t)
+            t = (time()*1000)
             pool.map(primo_3, original)
-            resultados1['Primo 3'].append(time()-t)
-    stat1, p1 = f_oneway(resultados1['Primo 1'], resultados1['Primo 2'], \
-                         resultados1['Primo 3'])
+            resultados['Primo 3'].append((time()*1000)-t)
+            t = (time()*1000)
+            pool.map(primo_3, original)
+            resultados['Original'].append((time()*1000) - t)
+            t = (time()*1000)
+            pool.map(primo_3, invertido)
+            resultados['Invertido'].append((time()*1000) - t)
+            t = (time()*1000)
+            pool.map(primo_3, aleatorio)
+            resultados['Aleatorio'].append((time()*1000) - t)
+    df = pd.DataFrame(data = resultados)
+    print(df)
+    stat1, p1 = f_oneway(resultados['Primo 1'], resultados['Primo 2'], \
+                         resultados['Primo 3'])
     print('Variando algoritmo\n', 'stat=%.3f, p=%.3f' % (stat1, p1))
     if p1 > 0.05:
-        print('Probably same distribution\n')
+        print('Estadísticamente no significativa\n')
     else:
-        print('Probably different distribution\n')
-
-if __name__ == "__main__":
-    resultados2 = {"ot": [], "it": [], "at": []}
-    with multiprocessing.Pool(processes = cores-1) as pool:
-        for r in range(replicas):
-            t = time()
-            pool.map(primo_3, original)
-            resultados2["ot"].append(time() - t)
-            t = time()
-            pool.map(primo_3, invertido)
-            resultados2["it"].append(time() - t)
-            t = time()
-            pool.map(primo_3, aleatorio)
-            resultados2["at"].append(time() - t)
-    stat2, p2 = f_oneway(resultados2['ot'], resultados2['it'], resultados2['at'])
-    print('Variando orden de numeros\n', 'stat=%.3f, p=%.3f' % (stat2, p2))
-    if p2 > 0.05:
-        print('Probably same distribution\n')
+        print('Estadísticamente significativa\n')
+    stat2, p2 = f_oneway(resultados['Original'], resultados['Invertido'], \
+                         resultados['Aleatorio'])
+    print('Variando orden de numeros\n', 'stat=%.3f, p=%.3f' % (stat1, p1))
+    if p1 > 0.05:
+        print('Estadísticamente no significativa\n')
     else:
-        print('Probably different distribution\n')
-
-fig, ax1 = plt.subplots()
-ax1.violinplot(resultados1, showmeans=True)
-plt.show()
+        print('Estadísticamente significativa\n')
+    
+    sns.violinplot(data = df, cut = 0, scale = 'count')
+    plt.show()
