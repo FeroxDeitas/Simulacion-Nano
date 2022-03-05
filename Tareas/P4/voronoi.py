@@ -1,16 +1,17 @@
 import seaborn as sns
 from math import sqrt
-from scipy.stats import describe
 from PIL import Image, ImageColor
 from random import randint, choice
+import matplotlib.pyplot as plt
  
-size = [80, 90, 100]
-seed = 50
-runs = 5
+n = 100
+seed = [25, 50, 75, 100, 125]
+runs = 200
+resultado = []
 
 def creacion():
     semillas = []
-    for s in range(seed):
+    for s in range(k):
         while True:
             x, y = randint(0, n - 1), randint(0, n - 1)
             if (x, y) not in semillas:
@@ -24,7 +25,7 @@ def celda(pos):
     x, y = pos % n, pos // n
     cercano = None
     menor = n * sqrt(2)
-    for i in range(seed):
+    for i in range(k):
         (xs, ys) = semillas[i]
         dx, dy = x - xs, y - ys
         dist = sqrt(dx**2 + dy**2)
@@ -34,11 +35,11 @@ def celda(pos):
  
 def inicio():
     direccion = randint(0, 3)
-    if direccion == 0: # vertical abajo -> arriba
+    if direccion == 0:
         return (0, randint(0, n - 1))
-    elif direccion == 1: # izq. -> der
+    elif direccion == 1:
         return (randint(0, n - 1), 0)
-    elif direccion == 2: # der. -> izq.
+    elif direccion == 2:
         return (randint(0, n - 1), n - 1)
     else:
         return (n - 1, randint(0, n - 1))
@@ -48,18 +49,16 @@ def propaga_n():
     grieta_n = voronoi.copy()
     g = grieta_n.load()
     (xn, yn) = inicio()
-    largo_n = 0
     negro = (0, 0, 0)
     while True:
         g[xn, yn] = negro
-        largo_n += 1
         frontera, interior = [], []
         for v in vecinos:
             (dx, dy) = v
             vx, vy = xn + dx, yn + dy
-            if vx >= 0 and vx < n and vy >= 0 and vy < n: # existe
-               if g[vx, vy] != negro: # no tiene grieta por el momento
-                   if vor[vx, vy] == vor[xn, yn]: # misma celda
+            if vx >= 0 and vx < n and vy >= 0 and vy < n:
+               if g[vx, vy] != negro:
+                   if vor[vx, vy] == vor[xn, yn]:
                        interior.append(v)
                    else:
                        frontera.append(v)
@@ -74,8 +73,7 @@ def propaga_n():
             (dx, dy) = elegido
             xn, yn = xn + dx, yn + dy
         else:
-            break # ya no se propaga
-    print('Largo de grieta negra:', largo_n)
+            break
     return grieta_n
 
 def propaga_b():
@@ -83,18 +81,17 @@ def propaga_b():
     grieta_b = propaga_n()
     g = grieta_b.load()
     (xb, yb) = inicio()
-    largo_b = 0
     blanco = (255, 255, 255)
+    negro = (0, 0, 0)
     while True:
         g[xb, yb] = blanco
-        largo_b += 1
         frontera, interior = [], []
         for v in vecinos:
             (dx, dy) = v
             vx, vy = xb + dx, yb + dy
-            if vx >= 0 and vx < n and vy >= 0 and vy < n: # existe
-               if g[vx, vy] != blanco: # no tiene grieta por el momento
-                   if vor[vx, vy] == vor[xb, yb]: # misma celda
+            if vx >= 0 and vx < n and vy >= 0 and vy < n:
+               if g[vx, vy] != blanco:
+                   if vor[vx, vy] == vor[xb, yb]:
                        interior.append(v)
                    else:
                        frontera.append(v)
@@ -108,18 +105,21 @@ def propaga_b():
         if elegido is not None:
             (dx, dy) = elegido
             xb, yb = xb + dx, yb + dy
+            if g[xb, yb] == negro:
+                tocaron.append(1)
+                break
         else:
-            break # ya no se propaga
-    print('Largo de grieta blanca:', largo_b)
+            break
     return grieta_b
 
-for n in size:
+for k in seed:
+    tocaron = []
     for r in range(runs):
         semillas = creacion()
         celdas = [celda(i) for i in range(n * n)]
         voronoi = Image.new('RGB', (n, n))
         vor = voronoi.load()
-        c = sns.color_palette("Set3", seed).as_hex()
+        c = sns.color_palette("Set3", k).as_hex()
         for i in range(n * n):
             vor[i % n, i // n] = ImageColor.getrgb(c[celdas.pop(0)])
         limite, vecinos = n, []
@@ -127,5 +127,13 @@ for n in size:
             for dy in range(-1, 2):
                 if dx != 0 or dy != 0:
                     vecinos.append((dx, dy))
-        visual = propaga_b().resize((10 * n,10 * n))
-        visual.save("p4pgbn_{:d}_{:d}.png".format(n, r))
+        propaga_b()
+    pr = (len(tocaron)/runs)*100
+    resultado.append(pr)
+print(resultado)
+plt.bar(x=seed, height=resultado, width=max(seed)/len(seed), color='red',\
+        edgecolor='black', tick_label=seed)
+plt.xlabel('Semillas')
+plt.ylabel('Probabilidad de que toquen (%)')
+plt.savefig('Voronoi.png')
+plt.show()
