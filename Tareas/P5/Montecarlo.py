@@ -1,7 +1,11 @@
 from math import exp, pi
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import warnings
 
+warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.options.display.float_format = "{:,.18f}".format
 
 def compare_strings(a, b):
@@ -34,6 +38,11 @@ from GeneralRandom import GeneralRandom
 generador = GeneralRandom(np.asarray(X), np.asarray(Y))
 desde = 3
 hasta = 7
+puntos = []
+ae = []
+se = []
+dec = []
+tiperr = ['Error Absoluto', 'Error Cuadrado', 'Decimales Correctos']
 pedazo = 50000
 cuantos = [500, 5000, 50000]
 
@@ -44,18 +53,33 @@ def parte(replica):
 import multiprocessing
 if __name__ == "__main__":
     with multiprocessing.Pool() as pool:
-        resultados = {'Absolute': [],
-                      'Square': [],
-                      'Decimals': []}
         for c in cuantos:
+            p = c * pedazo
+            puntos.append('{:.1e}'.format(p))
             montecarlo = pool.map(parte, range(c))
-            integral = sum(montecarlo) / (c * pedazo)
+            integral = sum(montecarlo) / p
             valor = (pi / 2) * integral
-            ae = abs(valor - wolfram)
-            se = ((valor - wolfram)**2)
-            dec = compare_strings(wolfram, valor) - 2
-            resultados['Absolute'].append(ae)
-            resultados['Square'].append(se)
-            resultados['Decimals'].append(dec)
-        df = pd.DataFrame(resultados, index = cuantos)
+            ae.append(abs(valor - wolfram))
+            se.append(((valor - wolfram)**2))
+            dec.append(compare_strings(wolfram, valor) - 2)
+        resultados = {'Iteraciones': puntos,
+                      'Error Absoluto': ae,
+                      'Error Cuadrado': se,
+                      'Decimales Correctos': dec}
+        df = pd.DataFrame(resultados)
+        sns.barplot(data=df, x='Iteraciones',
+                    y='Error Absoluto',
+                    dodge=False)
+        plt.savefig('AbsErr.png')
+        plt.show()
+        sns.barplot(data=df, x='Iteraciones',
+                    y='Error Cuadrado',
+                    dodge=False)
+        plt.savefig('SqErr.png')
+        plt.show()
+        sns.barplot(data=df, x='Iteraciones',
+                    y='Decimales Correctos',
+                    dodge=False)
+        plt.savefig('Decimals.png')
+        plt.show()
         print(df)
