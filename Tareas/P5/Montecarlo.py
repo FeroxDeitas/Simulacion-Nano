@@ -3,10 +3,32 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import warnings
 
-warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.options.display.float_format = "{:,.18f}".format
+
+wolfram = 0.048834111126049311
+desde = 3
+hasta = 7
+pedazo = 50000
+cuantos = [500, 5000, 50000]
+puntos = []
+ae = []
+se = []
+dec = []
+
+def g(x):
+    return (2  / (pi * (exp(x) + exp(-x))))
+
+vg = np.vectorize(g)
+X = np.arange(-8, 8, 0.05)
+Y = vg(X)
+ 
+from GeneralRandom import GeneralRandom
+generador = GeneralRandom(np.asarray(X), np.asarray(Y))
+
+def parte(replica):
+    V = generador.random(pedazo)[0]
+    return ((V >= desde) & (V <= hasta)).sum()
 
 def compare_strings(a, b):
     a = str(a)
@@ -15,40 +37,15 @@ def compare_strings(a, b):
     if a is None or b is None:
         return 0
     
-    size = min(len(a), len(b)) # Finding the minimum length
-    count = 0 # A counter to keep track of same characters
+    size = min(len(a), len(b))
+    count = 0
 
     for i in range(size):
         if a[i] == b[i]:
-            count += 1 # Updating the counter when characters are same at an index
+            count += 1
         else:
             break
-
     return count
-
-def g(x):
-    return (2  / (pi * (exp(x) + exp(-x))))
-
-wolfram = 0.048834111126049311
-vg = np.vectorize(g)
-X = np.arange(-8, 8, 0.05) # ampliar y refinar
-Y = vg(X) # mayor eficiencia
- 
-from GeneralRandom import GeneralRandom
-generador = GeneralRandom(np.asarray(X), np.asarray(Y))
-desde = 3
-hasta = 7
-puntos = []
-ae = []
-se = []
-dec = []
-tiperr = ['Error Absoluto', 'Error Cuadrado', 'Decimales Correctos']
-pedazo = 50000
-cuantos = [500, 5000, 50000]
-
-def parte(replica):
-    V = generador.random(pedazo)[0]
-    return ((V >= desde) & (V <= hasta)).sum()
  
 import multiprocessing
 if __name__ == "__main__":
