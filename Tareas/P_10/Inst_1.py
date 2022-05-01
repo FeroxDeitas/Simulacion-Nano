@@ -3,6 +3,7 @@ import pandas as pd
 from random import random, randint, sample
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import f_oneway
 
 def knapsack(peso_permitido, pesos, valores):
     assert len(pesos) == len(valores)
@@ -111,8 +112,6 @@ for runs in range(iteraciones):
         plt.ylim(0.95 * min(mejores), 1.05 * optimo)
         plt.savefig('p10p_I1_C1.png', bbox_inches='tight') 
         plt.close()
-        print(optimo, mejor, (optimo - mejor) / optimo)
-print('\nMejores Resultados de Combinacion 1: ', resultados1)
 
 #####Combinacion 2#####
 
@@ -161,8 +160,6 @@ for runs in range(iteraciones):
         plt.ylim(0.95 * min(mejores), 1.05 * optimo)
         plt.savefig('p10p_I1_C2.png', bbox_inches='tight') 
         plt.close()
-        print(optimo, mejor, (optimo - mejor) / optimo)
-print('\nMejores Resultados de Combinacion 2: ', resultados2)
 
 df  = pd.DataFrame({'Combinación 1': resultados1, 'Combinación 2': resultados2})
 print(df)
@@ -171,3 +168,11 @@ sns.violinplot(data=df)
 plt.ylabel('Proporción')
 plt.savefig('p10p_I1.png', bbox_inches='tight')
 plt.close
+
+print('######### Analisis Estadistico #########')
+stat, p = f_oneway(resultados1, resultados2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Estadísticamente no significativa')
+else:
+	print('Estadísticamente significativa')
