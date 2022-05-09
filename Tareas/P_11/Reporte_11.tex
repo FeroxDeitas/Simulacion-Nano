@@ -1,0 +1,238 @@
+\documentclass{report}
+\setlength{\parskip}{0pt} % esp. entre parrafos
+\setlength{\parindent}{20pt} % esp. al inicio de un parrafo
+\usepackage{amsmath} % mates
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[sort&compress,numbers]{natbib} % referencias
+\usepackage{url} % que las URLs se vean lindas
+\usepackage[top=10mm,left=20mm,right=20mm,bottom=25mm]{geometry} % \textbf{\textbf{}}margenes
+\usepackage{hyperref} % ligas de URLs
+\usepackage{graphicx} % poner figuras
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[spanish]{babel} % otros idiomas
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,      
+    urlcolor=blue,
+}
+\renewcommand{\lstlistingname}{C\'odigo}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\title{Reporte 11:\\Frentes de Pareto}
+\author{Jorge Torres}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\chapter{Cantidad de Funciones Objetivo}\label{cap1}
+
+\section{Objetivo}
+En optimizaci\'on multicriterio, a un mismo conjunto de variables se necesita asignarse valores de tal forma que se optimicen dos o m\'as funciones objetivo, que pueden contradecir una a otra — una mejora en una puede corresponder en una empeora en otra. Adem\'as hay que respetar potenciales restricciones, si es que las haya.
+
+El objetivo de la actividad consiste en graficar el porcentaje de soluciones de Pareto como funci\'on del n\'umero de funciones objetivo para $k \in [2, 3, 4, 5]$ con diagramas de viol\'in combinados con diagramas de caja-bigote, verificando que diferencias observadas, cuando las haya, sean estad\'isticamente significativas.
+
+\section{Desarrollo}
+El desarrollo de la actividad se basa en el \href{https://github.com/satuelisa/Simulation/blob/master/ParetoFronts/violin.R}{c\'odigo} implementado por E. Schaeffer, donde selecciona las mejores soluciones de un conjunto aleatorio para dos polinomios generados al azar \cite{elisa1}. La implementaci\'on completa se puede encontrar en el \href{https://github.com/FeroxDeitas/Simulacion-Nano/blob/main/Tareas/P_11/Pareto.R}{repositorio} en GitHub de J. Torres \cite{jorge1}. En el c\'odigo \ref{codigo1} se tienen tres funciones. La funci\'on \texttt{poli} crea una cantidad requerida de expresiones polinomiales aleatoriamente, que despu\'es son evaluadas para ciertas soluciones con la funci\'on \texttt{eval}. La tercera funci\'on, \texttt{domin.by}, revisa si las soluciones provistas son una mejora o empeora para cada una de las funciones objetivo, seleccionando \'unicamente las soluciones que son una mejora.
+
+\begin{lstlisting}[caption={Creaci\'on y Evaluaci\'on de Polinomios; Verificaci\'on de Soluciones Dominadas}, label=codigo1, language=R]
+poli <- function(maxdeg, varcount, termcount) {
+  f <- data.frame(variable=integer(), coef=integer(), degree=integer())
+  for (t in 1:termcount) {
+    var <- sample(1:varcount, 1)
+    deg <- sample(0:maxdeg, 1)
+    f <-  rbind(f, c(var, runif(1), deg))
+  }
+  names(f) <- c("variable", "coef", "degree")
+  return(f)
+}
+
+eval <- function(pol, vars) {
+  value <- 0.0
+  terms = dim(pol)[1]
+  for (t in 1:terms) {
+    term <- pol[t,]
+    value <-  value + term$coef * vars[term$variable]^term$degree
+  }
+  return(value)
+}
+
+domin.by <- function(target, challenger) {
+  if (sum(challenger < target) > 0) {
+    return(FALSE)
+  }
+  return(sum(challenger > target) > 0)
+}
+\end{lstlisting}
+
+Las l\'ineas del c\'odigo \ref{codigo2} establecen los par\'ametros iniciales de operaci\'on, con una cantidad de variables $vc=4$, el grado m\'aximo de polinomio $md=3$, y una cantidad de t\'erminos $tc=5$. Tambi\'en se tienen una cantidad de funciones objetivo $k \in [2, 3, 4, 5]$.
+
+\begin{lstlisting}[caption={Par\'ametros Iniciales}, label=codigo2, language=R]
+df = data.frame()
+vc <- 4
+md <- 3
+tc <- 5
+funciones <- c(2, 3, 4, 5)
+obj <- list()
+k = 0
+\end{lstlisting}
+
+Para cada cantidad de funciones objetivo se hacen 20 iteraciones del experimento, lo cual se inicializa en el c\'odigo \ref{codigo3}. En estas l\'ineas tambi\'en se eval\'ua una cantidad $n=200$ soluciones creadas aleatoriamente para todas las funciones objetivo.
+
+\begin{lstlisting}[caption=Inicializaci\'on de Iteraciones y Evaluaci\'on de Soluciones, label=codigo3, language=R]
+for (j in funciones){
+  k = j
+  for (replica in 1:20){
+    for (i in 1:k) {
+      obj[[i]] <- poli(md, vc, tc)
+    }
+    minim <- (runif(k) > 0.5)
+    sign <- (1 + -2 * minim)
+    n <- 200
+    sol <- matrix(runif(vc * n), nrow=n, ncol=vc)
+    val <- matrix(rep(NA, k * n), nrow=n, ncol=k)
+    for (i in 1:n) {
+      for (j in 1:k) {
+        val[i, j] <- eval(obj[[j]], sol[i,])
+      }
+    }
+\end{lstlisting}
+
+Para decidir cu\'ales soluciones son las que dominan y cu\'ales son las dominadas, se implementa el c\'odigo \ref{codigo4}, donde se utiliza un l\'ogica de \texttt{VERDAD/FALSO} seg\'un los resultados de la funci\'on \texttt{domin.by} del c\'odigo \ref{codigo1}. As\'imismo, se hace un conteo de las soluciones dominadas y no dominadas para calcular el porcentaje de soluciones que dominan, el cual se utiliza posteriormente para hacer las gr\'aficas tipo viol\'in.
+
+\begin{lstlisting}[caption=Decisi\'on y Conteo de Soluciones Dominadas y No Dominadas, label=codigo4, language=R]
+    mejor1 <- which.max(sign[1] * val[,1])
+    mejor2 <- which.max(sign[2] * val[,2])
+    cual <- c("max", "min")
+    no.dom <- logical()
+    dominadores <- integer()
+    for (i in 1:n) {
+      d <- logical()
+      for (j in 1:n) {
+        d <- c(d, domin.by(sign * val[i,], sign * val[j,]))
+      }
+      cuantos <- sum(d)
+      dominadores <- c(dominadores, cuantos)
+      no.dom <- c(no.dom, sum(d) == 0)
+    }
+    frente <- subset(val, no.dom)
+    porcentaje = (length(frente[,1])/n)*100
+    resultado = c(k, replica, porcentaje)
+    df = rbind(df, resultado)
+    names(df) = c("k", "Replica", "Porcentaje")
+  }
+}
+\end{lstlisting}
+
+\section{Resultado}
+
+La figura \ref{fig1} muestra un ejemplo de c\'omo se ve el frente de soluciones de Pareto con dos funciones objetivo. Resulta bastante dif\'icil graficar ejemplos para sistemas con m\'as de dos funciones, adem\'as de que el frente no se podr\'ia apreciar tan f\'acilmente, por lo que no se incluyen de manera visual. Sin embargo, estos sistemas s\'i se toman en cuenta al realizar los diagramas de tipo viol\'in, mostrando las distribuciones de los porcentajes de soluciones dominantes, lo cual se observa en la figura \ref{fig2}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{Images/p11_R1_frente.png}
+    \caption{Frente de Pareto para un sistema de dos funciones objetivo. Los puntos verdes representan aquellas soluciones que no fueron dominadas por ninguna otra.}
+    \label{fig1}
+\end{figure}
+
+\newpage
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{Images/p11_violin.png}
+    \caption{Distribuciones de los porcentajes de soluciones dominantes para cada cantidad de funciones objetivo.}
+    \label{fig2}
+\end{figure}
+
+Al realizar un an\'alisis de varianza entre los porcentajes arrojados, se encuentra un valor $p$ mucho menor a 0.05, lo cual prueba que, en efecto, existe una diferencia significativa al aumentar la cantidad de funciones objetivo.
+
+\section{Conclusiones}
+Como se puede observar del diagrama de la figura \ref{fig2}, para sistemas con solamente dos funciones objetivo, la el porcentaje de soluciones que no son dominadas es bastante bajo. En otras palabras, es mucho m\'as encontrar soluciones \'optimas para una menor cantidad de funciones. Sin embargo, conforme se aumenta la cantidad de funciones a optimizar, el rango de porcentajes de soluciones no dominadas se vuelve bastante amplio y uniformemente distribuido, teniendo desde $\sim10\%$ de soluciones hasta el $100\%$ de ellas. Esto podr\'ia deberse a la forma en que se desean optimizar las funciones. Si todas ellas se quieren minimizar o maximizar, es f\'acil encontrar soluciones que se encuentren muy cerca del \'optimo para todas. Pero si algunas de ellas se maximizan mientras otras se minimizan, es m\'as complicado encontrar soluciones que sean dominadas por otras.
+
+\chapter{Reto 1 - Soluciones Diversificadas}
+
+\section{Objetivo}
+
+El objetivo del primer reto es el seleccionar un subconjunto (cuyo tama\~no como un porcentaje del frente original se proporciona como un par\'ametro) del frente de Pareto, de tal forma que la selecci\'on est\'e diversificada, es decir, que no est\'en agrupados juntos en una sola zona del frente las soluciones seleccionadas.
+
+\section{Desarrollo}
+
+El desarrollo del reto es muy similar a la actividad del cap\'itulo \ref{cap1}. Para simplificaci\'on de c\'alculo y visualizaci\'on, la cantidad de funciones objetivo se reduce a $k=2$. De la misma forma vista en los c\'odigos \ref{codigo1} al \ref{codigo4}, se crean funciones polinomiales y soluciones de manera aleatoria, se decide si las funciones se maximizan o minimizan y se seleccionan las funciones que dominen a todas las dem\'as del conjunto. La diferencia radica en que ahora se toma un subconjunto de soluciones cuyo tama\~no depende de un porcentaje del frente original. Esto se logra mediante la implementaci\'on del c\'odigo \ref{codigo5}. Estos nuevos puntos se utilizan posteriormente para graficar las soluciones.
+
+\begin{lstlisting}[caption=Selecci\'on Diversificada de Nuevas Soluciones, label=codigo5, language=R]
+porcentaje=50
+dispersos = kmeans(frente, round(dim(frente)[1]*porcentaje/100), iter.max = 1000, nstart = 50, algorithm = "Lloyd")
+dispersos$cluster
+dispersos$centers
+mejor1 <- which.max((1 + (-2 * minim[1])) * val[,1])
+mejor2 <- which.max((1 + (-2 * minim[2])) * val[,2])
+\end{lstlisting}
+
+\section{Resultados}
+
+La figura \ref{fig3a} muestra el frente de Pareto para las dos funciones creadas aleatoriamente, donde las soluciones dominantes se resaltan en color verde. La primera funci\'on se requiere maximizar, mientras la segunda se desea minimizar. Las mejores soluciones para cada funci\'on se resaltan con un cuadro azul y una bola naranja, respectivamente. Por otro lado, la figura \ref{fig3b} muestra el subconjunto seleccionado de nuevas soluciones, donde \'estas se marcan con bolas rojas.
+
+\newpage
+
+\begin{figure}
+\centering
+    \begin{subfigure}[t]{0.49\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Images/p11_R1_frente.png}
+         \caption{Frente de soluciones de Pareto para el sistema de dos funciones objetivo.}
+         \label{fig3a}
+     \end{subfigure}
+     \begin{subfigure}[t]{0.49\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{Images/p11_R1_fdispersos.png}
+         \caption{Subconjunto de soluciones dispersas seleccionadas.}
+         \label{fig3b}
+     \end{subfigure}
+    \caption{Frente de Pareto y subconjunto de nuevas soluciones.}
+    \label{fig3}
+\end{figure}
+
+\begin{figure}
+\centering
+    \includegraphics[width=\textwidth]{Images/p11_R1_violin.png}
+    \caption{Cantidad y frecuencia de soluciones dominantes para el frente de Pareto y el subconjunto de soluciones.}
+    \label{fig4}
+\end{figure}
+
+\newpage
+
+Para visualizar la cantidad y frecuencia de estas soluciones dominantes, se implementa un diagrama de tipo viol\'in en conjunto con uno de caja-bigote, como se puede apreciar en la figura \ref{fig4}.
+
+\section{Conclusiones}
+
+El m\'etodo de las soluciones dispersas es \'util para encontrar nuevas soluciones en la optimizaci\'on de funciones, las cuales no se encuentran estrictamente dentro de un conjunto dado, pero s\'i muy cerca de las soluciones previamente encontradas.
+
+\bibliography{tarea_11}
+\bibliographystyle{plainnat}
+
+\end{document}
