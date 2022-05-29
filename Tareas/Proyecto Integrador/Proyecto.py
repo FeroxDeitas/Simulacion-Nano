@@ -13,11 +13,10 @@ g = 300*(10**-3) #J/m2
 
 hertz_list = []
 jkr_list = []
-Fround = []
 diffa = []
 
 def a(F):
-    return (((3*R)/(4*E))*(F + 6*g*pi*R + np.sqrt((12*g*pi*R*F) + (6*g*pi*R)**2)))**(1/3)
+    return (((3*R)/(4*E))*(F + 3*g*pi*R + np.sqrt((6*g*pi*R*F) + (3*g*pi*R)**2)))**(1/3)
 
 def d_hertz(F):
     return (((9*(F**2))/(16*(E**2)*R))**(1/3))*(10**9) #nm
@@ -28,7 +27,7 @@ def d_jkr(F, a, p1, p2):
 for f in F:
     A = a(f)
     p1 = (2*A*E)/(pi*R)
-    p2 = -1 * np.sqrt((4*g*E)/(pi*A))
+    p2 = -1 * np.sqrt((2*g*E)/(pi*A))
     hertz = d_hertz(f)
     jkr = d_jkr(f, A, p1, p2)
     hertz_list.append(hertz)
